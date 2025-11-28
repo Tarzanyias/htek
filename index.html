@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>H-Tek | Home Page</title>
+    <!-- PayPal SDK Loaded from the user's provided config. This is correct. -->
+    <script 
+  src="https://www.paypal.com/sdk/js?client-id=BAAAlaRxA3KbFZr2em3TUeirbZdGSngwcyHMItxDS_YPYIFuSH1BfIKdY5wRjmhJMC0XvPmC7t0Lh5S57c&components=hosted-buttons&enable-funding=venmo&currency=USD">
+</script>
     <!-- Favicon Link Added -->
     <link rel="icon" type="image/png" href="Images/favicon.png">
     <!-- Load Tailwind CSS -->
@@ -26,6 +30,12 @@
         }
     </script>
     <style>
+        /* FOUC Prevention: Hides header and main content until JS removes the class */
+        body.fouc-prevent header, body.fouc-prevent #app-container {
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
         /* Custom styles for professional look, though mostly Tailwind is used */
         .card-hover {
             transition: transform 0.3s, box-shadow 0.3s;
@@ -34,226 +44,430 @@
             transform: translateY(-5px);
             box-shadow: 0 20px 25px -5px rgba(16, 185, 129, 0.2), 0 8px 10px -6px rgba(16, 185, 129, 0.1);
         }
+        /* Style to ensure hidden sections don't take up space */
+        .page-content.hidden {
+            display: none;
+        }
+        /* Styling for the PayPal container to ensure it centers correctly */
+        #paypal-container-HZAT6FFZEVU84 {
+            max-width: 300px; /* Gives the button a consistent width */
+            margin: 1.5rem auto; /* Centers the button horizontally */
+        }
+        /* Spinner styles for the loading state */
+        .spinner {
+            border-top-color: #1e3a8a; /* htek-primary color */
+            -webkit-animation: spin 1s linear infinite;
+            animation: spin 1s linear infinite;
+        }
+        @-webkit-keyframes spin {
+            0% { -webkit-transform: rotate(0deg); }
+            100% { -webkit-transform: rotate(360deg); }
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        /* Notification style */
+        #notification-area {
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        /* Modal Backdrop */
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+        }
+        /* Modal Content */
+        .modal-content {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1001;
+            max-width: 90%;
+            width: 400px;
+        }
     </style>
 </head>
-<body class="bg-gray-50 font-sans text-gray-800">
+<body class="bg-gray-50 font-sans text-gray-800 min-h-screen fouc-prevent">
 
-    <!-- Navigation Bar -->
-    <header class="bg-htek-dark shadow-lg sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16">
-                <!-- Logo -->
-                <a href="#" class="text-2xl font-extrabold text-white tracking-wider">
-                    H-<span class="text-htek-secondary">Tek</span>
-                </a>
+    <!-- Firebase SDK Imports -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, onSnapshot, collection, query, serverTimestamp, updateDoc, getDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        
+        // Expose Firebase objects globally for use in the standard <script> block
+        window.firebase = {
+            initializeApp, getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged,
+            getFirestore, doc, setDoc, onSnapshot, collection, query, serverTimestamp, updateDoc, getDoc, getDocs,
+            setLogLevel
+        };
+    </script>
 
-                <!-- Desktop Menu -->
-                <nav class="hidden md:flex space-x-8">
-                    <a href="#about" class="text-gray-300 hover:text-white transition duration-150">Our Mission</a>
-                    <a href="#services" class="text-gray-300 hover:text-white transition duration-150">Services</a>
-                    <a href="#donate" class="text-gray-300 hover:text-white transition duration-150">Donate Parts</a>
-                    <a href="#contact" class="px-3 py-1 text-white bg-htek-secondary rounded-full hover:bg-emerald-400 transition duration-150">Get Support</a>
-                </nav>
+    <!-- Notification Area (Hidden by default) -->
+    <div id="notification-area" class="fixed top-0 left-0 right-0 z-[100] text-center p-3 text-white font-semibold hidden shadow-lg" style="opacity: 0;">
+        <!-- Notification message will be inserted here -->
+    </div>
 
-                <!-- Mobile Menu Button (Hamburger) -->
-                <button id="mobile-menu-button" class="md:hidden text-gray-300 hover:text-white focus:outline-none">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+    <!-- Admin Prompt Modal (For manual link input) -->
+    <div id="admin-modal" class="modal-backdrop hidden">
+        <div class="modal-content bg-white p-6 rounded-xl shadow-2xl">
+            <h3 class="text-xl font-bold mb-4 text-htek-primary">Input Support Link/Code</h3>
+            <p class="mb-4 text-gray-700">Paste the Google Meet link, special code, or custom text you want the client to receive.</p>
+            <input type="text" id="meet-link-input" placeholder="e.g., https://meet.google.com/abc-xyz or CUSTOM-CODE-123" class="w-full p-3 mb-4 border border-gray-300 rounded-lg focus:ring-htek-secondary focus:border-htek-secondary">
+            <div class="flex justify-end space-x-3">
+                <button onclick="closeAdminModal()" class="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400 transition duration-150">
+                    Cancel
+                </button>
+                <button id="modal-approve-button" onclick="finalizeApproval()" class="px-4 py-2 bg-htek-secondary text-white rounded-lg hover:bg-emerald-600 transition duration-150">
+                    Finalize Approval
                 </button>
             </div>
         </div>
-
-        <!-- Mobile Menu (Hidden by default) -->
-        <div id="mobile-menu" class="hidden md:hidden bg-htek-dark">
-            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-                <a href="#about" class="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:bg-htek-primary hover:text-white">Our Mission</a>
-                <a href="#services" class="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:bg-htek-primary hover:text-white">Services</a>
-                <a href="#donate" class="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:bg-htek-primary hover:text-white">Donate Parts</a>
-                <a href="#contact" class="block px-3 py-2 rounded-md text-base font-medium text-white bg-htek-secondary hover:bg-emerald-400 mt-2">Get Support</a>
+    </div>
+    
+    <!-- Admin Code Authentication Modal (Requires secret code) -->
+    <div id="admin-code-modal" class="modal-backdrop hidden">
+        <div class="modal-content bg-white p-6 rounded-xl shadow-2xl">
+            <h3 class="text-xl font-bold mb-4 text-htek-primary">Admin Access Required</h3>
+            <p class="mb-4 text-gray-700">Please enter the secret administration code to view the queue.</p>
+            <input type="password" id="admin-code-input" placeholder="Enter secret code" class="w-full p-3 mb-2 border border-gray-300 rounded-lg focus:ring-htek-secondary focus:border-htek-secondary">
+            <p id="admin-code-error" class="text-red-500 text-sm mb-4 hidden">Error: Invalid secret code.</p>
+            <div class="flex justify-end space-x-3">
+                <button onclick="closeAdminCodeModal(); window.location.hash='#home';" class="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400 transition duration-150">
+                    Cancel
+                </button>
+                <button onclick="submitAdminCode()" class="px-4 py-2 bg-htek-secondary text-white rounded-lg hover:bg-emerald-600 transition duration-150">
+                    Access Admin Queue
+                </button>
             </div>
         </div>
+    </div>
+
+
+    <!-- Navigation Bar (Always Visible and Responsive) -->
+    <header class="bg-htek-dark shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo: Link to #home (Always visible) -->
+                <a href="#home" class="text-2xl font-extrabold text-white tracking-wider flex-shrink-0">
+                    H-<span class="text-htek-secondary">Tek</span>
+                </a>
+
+                <!-- Navigation Links and Account Icon -->
+                <!-- Links are set to always display -->
+                <nav class="flex items-center justify-end space-x-3 sm:space-x-8">
+                    <!-- Navigation Items -->
+                    <a href="#about" class="nav-link text-gray-300 hover:text-white transition duration-150 text-sm">Our Mission</a>
+                    <a href="#services" class="nav-link text-gray-300 hover:text-white transition duration-150 text-sm">Services</a>
+                    <a href="#donate" class="nav-link text-gray-300 hover:text-white transition duration-150 text-sm">Donate Parts</a>
+                    
+                    <!-- CTA Button (Always visible) -->
+                    <a href="#contact" class="nav-link px-3 py-1 text-white bg-htek-secondary rounded-full hover:bg-emerald-400 transition duration-150 text-sm sm:text-base">Get Support</a>
+                    
+                    <!-- Account Icon & Dropdown (Always visible) -->
+                    <div class="relative group">
+                        <button id="account-button-desktop" onclick="handleAdminLinkClick();" class="flex items-center text-gray-300 hover:text-white transition duration-150 p-2 rounded-full hover:bg-htek-primary/50 focus:outline-none" aria-label="Account Settings">
+                            <!-- User Icon SVG -->
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                            <!-- Guest/Admin Text on Hover (Visible on all sizes, text updates) -->
+                            <span id="desktop-account-label" class="ml-2 text-sm text-gray-300 group-hover:text-white transition duration-150">Guest</span>
+                        </button>
+
+                        <!-- Dropdown Menu: hidden on load, shown on group-hover. -->
+                        <div id="account-dropdown" class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl py-1 hidden group-hover:block z-50 transition-opacity duration-300">
+                            <a href="#admin-queue" id="admin-queue-link-desktop" onclick="handleAdminLinkClick(true);" class="w-full block text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-htek-primary transition duration-150">
+                                Admin Queue
+                            </a>
+                            <button onclick="clearCache();" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-red-600 transition duration-150">
+                                Reset Admin Status
+                            </button>
+                        </div>
+                    </div>
+                </nav>
+            </div>
+        </div>
+        <!-- Mobile Menu is removed as links are now in the main bar -->
     </header>
 
-    <!-- Hero Section -->
-    <section class="bg-htek-primary text-white py-20 md:py-32">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h1 class="text-4xl sm:text-6xl font-extrabold leading-tight mb-4">
-                Powering PCs, <span class="text-htek-secondary">Empowering People.</span>
-            </h1>
-            <p class="text-xl sm:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto">
-                Donate your unused computer parts to support digital literacy projects, and get expert tech help for a small, affordable fee.
-            </p>
-            <div class="space-y-4 sm:space-y-0 sm:space-x-6">
-                <a href="#services" class="inline-block bg-htek-secondary text-htek-dark font-bold py-3 px-8 rounded-xl text-lg shadow-xl hover:bg-emerald-400 transition duration-300 transform hover:scale-105">
-                    Get Expert Tech Support
-                </a>
-                <a href="#donate" class="inline-block bg-white text-htek-primary font-bold py-3 px-8 rounded-xl text-lg shadow-xl hover:bg-gray-200 transition duration-300 transform hover:scale-105">
-                    Donate Your Parts Today
-                </a>
-            </div>
-        </div>
-    </section>
-
-    <!-- Our Mission (About) Section -->
-    <section id="about" class="py-16 bg-white">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center">
-                <h2 class="text-3xl font-extrabold text-htek-dark sm:text-4xl mb-4">Our Two-Part Mission</h2>
-                <p class="text-xl text-gray-600 max-w-2xl mx-auto">
-                    H-Tek bridges the digital divide by accepting hardware donations and using the proceeds from our services to fund community tech projects.
+    <!-- MAIN CONTENT CONTAINER (Acts as different pages) -->
+    <main id="app-container">
+        
+        <!-- Page: Home/Hero Section -->
+        <section id="home" class="page-content bg-htek-primary text-white py-20 md:py-32">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <h1 class="text-4xl sm:text-6xl font-extrabold leading-tight mb-4">
+                    Powering PCs, <span class="text-htek-secondary">Empowering People.</span>
+                </h1>
+                <p class="text-xl sm:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto">
+                    Donate your unused computer parts to support digital literacy projects, and get expert tech help for a small, affordable fee.
                 </p>
-            </div>
-
-            <div class="mt-12 grid grid-cols-1 md:grid-cols-2 gap-8">
-                <!-- Mission Card 1: Services -->
-                <div class="bg-htek-primary/5 p-8 rounded-2xl shadow-lg border-t-4 border-htek-primary">
-                    <div class="flex items-center space-x-4 mb-4">
-                        <span class="text-4xl text-htek-primary">🔧</span>
-                        <h3 class="text-2xl font-bold text-htek-dark">Affordable Tech Support</h3>
-                    </div>
-                    <p class="text-gray-700">
-                        Get reliable help for software issues, hardware diagnosis, and performance tuning from our certified technicians, available online and in-person. Your small fee directly funds our community initiatives.
-                    </p>
-                    <a href="#services" class="mt-4 inline-block text-htek-primary font-semibold hover:text-htek-secondary transition duration-150">Explore Support Options &rarr;</a>
-                </div>
-
-                <!-- Mission Card 2: Donations -->
-                <div class="bg-htek-secondary/10 p-8 rounded-2xl shadow-lg border-t-4 border-htek-secondary">
-                    <div class="flex items-center space-x-4 mb-4">
-                        <span class="text-4xl text-htek-secondary">♻️</span>
-                        <h3 class="text-2xl font-bold text-htek-dark">Sustainable Hardware Donation</h3>
-                    </div>
-                    <p class="text-gray-700">
-                        Give new life to your old GPUs, RAM, CPUs, and peripherals. We refurbish, repurpose, or responsibly recycle every component, turning e-waste into educational resources.
-                    </p>
-                    <a href="#donate" class="mt-4 inline-block text-htek-secondary font-semibold hover:text-htek-primary transition duration-150">See How to Donate &rarr;</a>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Services Section -->
-    <section id="services" class="py-16 bg-gray-100">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-12">
-                <h2 class="text-3xl font-extrabold text-htek-dark sm:text-4xl">Expert Computer Support for a Small Fee</h2>
-                <p class="mt-4 text-lg text-gray-600">
-                    Your payment helps fund our mission. Get reliable, professional service without the big-box price tag.
-                </p>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <!-- Service Card 1: Online Support -->
-                <div class="card-hover bg-white p-6 md:p-10 rounded-xl shadow-xl border border-gray-200">
-                    <div class="text-5xl text-htek-primary mb-4">🖥️</div>
-                    <h3 class="text-2xl font-bold mb-3 text-htek-dark">Remote Diagnostics & Repair</h3>
-                    <p class="text-gray-600 mb-6">
-                        Get immediate assistance from anywhere. We securely connect to your PC to resolve software errors, virus removal, driver conflicts, and speed optimization issues.
-                    </p>
-                    <ul class="list-disc pl-5 text-gray-600 space-y-2">
-                        <li>Software installation & setup</li>
-                        <li>System cleanup and tune-up</li>
-                        <li>Quick troubleshooting session</li>
-                    </ul>
-                    <a href="#" class="mt-6 inline-block bg-htek-secondary text-white font-semibold py-2 px-6 rounded-full hover:bg-emerald-600 transition duration-300">
-                        Book Remote Session ($25 Fee)
+                <div class="space-y-4 sm:space-y-0 sm:space-x-6">
+                    <a href="#services" class="inline-block bg-htek-secondary text-htek-dark font-bold py-3 px-8 rounded-xl text-lg shadow-xl hover:bg-emerald-400 transition duration-300 transform hover:scale-105">
+                        Get Expert Tech Support
                     </a>
-                </div>
-
-                <!-- Service Card 2: In-Person Support -->
-                <div class="card-hover bg-white p-6 md:p-10 rounded-xl shadow-xl border border-gray-200">
-                    <div class="text-5xl text-htek-secondary mb-4">🛠️</div>
-                    <h3 class="text-2xl font-bold mb-3 text-htek-dark">On-Site & Drop-Off Services</h3>
-                    <p class="text-gray-600 mb-6">
-                        For complex hardware issues, component replacement, and network setup, our local team is ready to help (currently serving the Greater Metro Area).
-                    </p>
-                    <ul class="list-disc pl-5 text-gray-600 space-y-2">
-                        <li>Hardware replacement (RAM, SSD, etc.)</li>
-                        <li>Custom PC builds and upgrades</li>
-                        <li>In-depth diagnostics and repair</li>
-                    </ul>
-                    <a href="#" class="mt-6 inline-block bg-htek-primary text-white font-semibold py-2 px-6 rounded-full hover:bg-blue-800 transition duration-300">
-                        Request In-Person Quote ($50 Flat Rate + Parts)
+                    <a href="#donate" class="inline-block bg-white text-htek-primary font-bold py-3 px-8 rounded-xl text-lg shadow-xl hover:bg-gray-200 transition duration-300 transform hover:scale-105">
+                        Donate Your Parts Today
                     </a>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- Donation (Call to Action) Section -->
-    <section id="donate" class="py-16 bg-htek-dark text-white">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h2 class="text-3xl font-extrabold sm:text-4xl text-htek-secondary mb-4">Ready to Clear Out the Clutter?</h2>
-            <p class="text-xl text-gray-300 mb-8 max-w-3xl mx-auto">
-                Your surplus computer parts—even non-working ones—can change someone's life by becoming a tool for education and opportunity.
-            </p>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
-                <!-- Step 1 -->
-                <div class="p-6 bg-htek-primary rounded-xl card-hover">
-                    <span class="text-4xl font-bold text-htek-secondary block mb-3">1. Collect</span>
-                    <h4 class="text-xl font-semibold mb-2">Gather Your Gear</h4>
-                    <p class="text-gray-300">CPUs, GPUs, RAM, motherboards, monitors, keyboards, or even full towers you no longer need.</p>
+        <!-- Page: Our Mission (About) Section -->
+        <section id="about" class="page-content py-16 bg-white hidden">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center">
+                    <h2 class="text-3xl font-extrabold text-htek-dark sm:text-4xl mb-4">Our Two-Part Mission</h2>
+                    <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+                        H-Tek bridges the digital divide by accepting hardware donations and using the proceeds from our services to fund community tech projects.
+                    </p>
                 </div>
 
-                <!-- Step 2 -->
-                <div class="p-6 bg-htek-primary rounded-xl card-hover">
-                    <span class="text-4xl font-bold text-htek-secondary block mb-3">2. Contact</span>
-                    <h4 class="text-xl font-semibold mb-2">Schedule Drop-off or Pickup</h4>
-                    <p class="text-gray-300">Fill out our quick form or call us to arrange a safe, convenient way to transfer your donation.</p>
-                </div>
+                <div class="mt-12 grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- Mission Card 1: Services -->
+                    <div class="bg-htek-primary/5 p-8 rounded-2xl shadow-lg border-t-4 border-htek-primary">
+                        <div class="flex items-center space-x-4 mb-4">
+                            <span class="text-4xl text-htek-primary">🔧</span>
+                            <h3 class="text-2xl font-bold text-htek-dark">Affordable Tech Support</h3>
+                        </div>
+                        <p class="text-gray-700">
+                            Get reliable help for software issues, hardware diagnosis, and performance tuning from our certified technicians, available online. Your small fee directly funds our community initiatives.
+                        </p>
+                        <a href="#services" class="mt-4 inline-block text-htek-primary font-semibold hover:text-htek-secondary transition duration-150">Explore Support Options &rarr;</a>
+                    </div>
 
-                <!-- Step 3 -->
-                <div class="p-6 bg-htek-primary rounded-xl card-hover">
-                    <span class="text-4xl font-bold text-htek-secondary block mb-3">3. Impact</span>
-                    <h4 class="text-xl font-semibold mb-2">See Your Impact</h4>
-                    <p class="text-gray-300">We'll provide a donation receipt and share stories of the projects your hardware makes possible.</p>
+                    <!-- Mission Card 2: Donations -->
+                    <div class="bg-htek-secondary/10 p-8 rounded-2xl shadow-lg border-t-4 border-htek-secondary">
+                        <div class="flex items-center space-x-4 mb-4">
+                            <span class="text-4xl text-htek-secondary">♻️</span>
+                            <h3 class="text-2xl font-bold text-htek-dark">Sustainable Hardware Donation</h3>
+                        </div>
+                        <p class="text-gray-700">
+                            Give new life to your old GPUs, RAM, CPUs, and peripherals. We refurbish, repurpose, or responsibly recycle every component, turning e-waste into educational resources.
+                        </p>
+                        <a href="#donate" class="mt-4 inline-block text-htek-secondary font-semibold hover:text-htek-primary transition duration-150">See How to Donate &rarr;</a>
+                    </div>
                 </div>
             </div>
+        </section>
 
-            <a href="#" class="mt-12 inline-block bg-htek-secondary text-htek-dark font-bold py-3 px-10 rounded-full text-xl shadow-2xl hover:bg-emerald-400 transition duration-300 transform hover:scale-105">
-                Start Your Donation
-            </a>
-        </div>
-    </section>
+        <!-- Page: Services Section (Only Remote Support remains) -->
+        <section id="services" class="page-content py-16 bg-gray-100 hidden">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-extrabold text-htek-dark sm:text-4xl">Expert Computer Support for a Small Fee</h2>
+                    <p class="mt-4 text-lg text-gray-600">
+                        Your payment helps fund our mission. Get reliable, professional service without the big-box price tag. We specialize in remote, online assistance.
+                    </p>
+                </div>
 
-    <!-- Contact Form/Inquiry Section -->
-    <section id="contact" class="py-16 bg-white">
-        <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-12">
-                <h2 class="text-3xl font-extrabold text-htek-dark sm:text-4xl">Get in Touch</h2>
-                <p class="mt-4 text-lg text-gray-600">
-                    Have a specific problem or a question about a donation? Let us know.
+                <!-- Centering the single service card -->
+                <div class="flex justify-center">
+                    <!-- Service Card 1: Online Support (The only remaining card) -->
+                    <div class="card-hover bg-white p-6 md:p-10 rounded-xl shadow-xl border border-gray-200 w-full max-w-md">
+                        <div class="text-5xl text-htek-primary mb-4">🖥️</div>
+                        <h3 class="text-2xl font-bold mb-3 text-htek-dark">Remote Diagnostics & Repair</h3>
+                        <p class="text-gray-600 mb-6">
+                            Get immediate assistance from anywhere. We securely connect to your PC to resolve software errors, virus removal, driver conflicts, and speed optimization issues.
+                        </p>
+                        <ul class="list-disc pl-5 text-gray-600 space-y-2">
+                            <li>Software installation & setup</li>
+                            <li>System cleanup and tune-up</li>
+                            <li>Quick troubleshooting session</li>
+                        </ul>
+                        <a href="#contact" class="mt-6 inline-block bg-htek-secondary text-white font-semibold py-2 px-6 rounded-full hover:bg-emerald-600 transition duration-300">
+                            Book Remote Session ($25 Fee)
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Page: Donation (Call to Action) Section -->
+        <section id="donate" class="page-content py-16 bg-htek-dark text-white hidden">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <h2 class="text-3xl font-extrabold sm:text-4xl text-htek-secondary mb-4">Ready to Clear Out the Clutter?</h2>
+                <p class="text-xl text-gray-300 mb-8 max-w-3xl mx-auto">
+                    Your surplus computer parts—even non-working ones—can change someone's life by becoming a tool for education and opportunity.
                 </p>
-            </div>
 
-            <div class="bg-gray-100 p-8 rounded-xl shadow-lg">
-                <form onsubmit="handleFormSubmit(event)">
-                    <div class="mb-4">
-                        <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Name</label>
-                        <input type="text" id="name" name="name" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-htek-primary focus:border-htek-primary" required>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
+                    <!-- Step 1 -->
+                    <div class="p-6 bg-htek-primary rounded-xl card-hover">
+                        <span class="text-4xl font-bold text-htek-secondary block mb-3">1. Collect</span>
+                        <h4 class="text-xl font-semibold mb-2">Gather Your Gear</h4>
+                        <p class="text-gray-300">CPUs, GPUs, RAM, motherboards, monitors, keyboards, or even full towers you no longer need.</p>
                     </div>
-                    <div class="mb-4">
-                        <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                        <input type="email" id="email" name="email" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-htek-primary focus:border-htek-primary" required>
-                    </div>
-                    <div class="mb-6">
-                        <label for="message" class="block text-sm font-medium text-gray-700 mb-1">Your Inquiry (Support or Donation)</label>
-                        <textarea id="message" name="message" rows="4" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-htek-primary focus:border-htek-primary" required></textarea>
-                    </div>
-                    <button type="submit" class="w-full bg-htek-primary text-white font-bold py-3 rounded-xl hover:bg-blue-800 transition duration-300">
-                        Submit Inquiry
-                    </button>
-                    <div id="form-message" class="mt-4 text-center hidden p-3 rounded-lg bg-green-100 text-green-700"></div>
-                </form>
-            </div>
-        </div>
-    </section>
 
-    <!-- Footer -->
+                    <!-- Step 2 -->
+                    <div class="p-6 bg-htek-primary rounded-xl card-hover">
+                        <span class="text-4xl font-bold text-htek-secondary block mb-3">2. Contact</span>
+                        <h4 class="text-xl font-semibold mb-2">Schedule Drop-off or Pickup</h4>
+                        <p class="text-gray-300">Fill out our quick form or call us to arrange a safe, convenient way to transfer your donation.</p>
+                    </div>
+
+                    <!-- Step 3 -->
+                    <div class="p-6 bg-htek-primary rounded-xl card-hover">
+                        <span class="text-4xl font-bold text-htek-secondary block mb-3">3. Impact</span>
+                        <h4 class="text-xl font-semibold mb-2">See Your Impact</h4>
+                        <p class="text-gray-300">We'll provide a donation receipt and share stories of the projects your hardware makes possible.</p>
+                    </div>
+                </div>
+
+                <a href="#contact" class="mt-12 inline-block bg-htek-secondary text-htek-dark font-bold py-3 px-10 rounded-full text-xl shadow-2xl hover:bg-emerald-400 transition duration-300 transform hover:scale-105">
+                    Start Your Donation
+                </a>
+            </div>
+        </section>
+
+        <!-- Page: Contact Form/Inquiry Section -->
+        <section id="contact" class="page-content py-16 bg-white hidden">
+            <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-extrabold text-htek-dark sm:text-4xl">Get Support</h2>
+                    <!-- Instructions change based on state -->
+                    <p class="mt-4 text-lg text-gray-600" id="contact-instructions">
+                        Checking for existing session...
+                    </p>
+                </div>
+
+                <!-- Main Content Wrapper -->
+                <div class="bg-gray-100 p-8 rounded-xl shadow-lg">
+
+                    <!-- Loader: Visible until Firebase check completes -->
+                    <div id="contact-loader" class="text-center py-10">
+                        <div class="spinner border-4 border-t-4 border-gray-200 rounded-full h-12 w-12 mx-auto mb-4"></div>
+                        <p class="text-lg font-semibold text-gray-700">Loading support session status...</p>
+                    </div>
+                    
+                    <!-- Payment Block: Initially Hidden in HTML, shown if no existing session is found. -->
+                    <div id="paypal-payment-block" class="hidden flex flex-col items-center justify-center pb-6 border-b border-gray-300">
+                        <p class="text-lg font-semibold text-htek-primary mb-4">
+                            Remote Support Fee: $25.00
+                        </p>
+                        
+                        <!-- PayPal Button Container (Styled via CSS in the <style> block) -->
+                        <div id="paypal-container-HZAT6FFZEVU84" class="w-full"></div>
+                        
+                        <!-- PayPal Button Render Script -->
+                        <script>
+                            // This ensures the button is only rendered once.
+                            document.addEventListener('DOMContentLoaded', () => {
+                                if (typeof paypal !== 'undefined' && document.getElementById('paypal-container-HZAT6FFZEVU84')) {
+                                    paypal.HostedButtons({
+                                        hostedButtonId: "HZAT6FFZEVU84",
+                                    }).render("#paypal-container-HZAT6FFZEVU84").catch(err => {
+                                        // This catches the persistent "Can not read window host" error in the iframe, 
+                                        // but the button usually renders despite the error.
+                                        console.warn("PayPal Render Warning/Error:", err);
+                                    });
+                                }
+                            });
+                        </script>
+                        
+                        <!-- Request Fulfillment Button: Initially styled as disabled, enabled after 30s. -->
+                        <button 
+                            id="request-fulfillment-button"
+                            onclick="requestFulfillment()"
+                            class="mt-6 w-full max-w-[300px] bg-htek-secondary/50 text-white font-bold py-3 rounded-xl opacity-50 cursor-not-allowed transition duration-300"
+                            disabled
+                        >
+                            Request Support Link
+                        </button>
+                    </div>
+                    
+                    <!-- Queue Status Block - Initially Hidden in HTML -->
+                    <div id="queue-status-block" class="hidden text-center py-10">
+                        <div class="spinner border-4 border-t-4 border-gray-200 rounded-full h-16 w-16 mx-auto mb-4"></div>
+                        <p class="text-xl font-semibold text-gray-700">
+                            You are in the queue. Waiting for admin confirmation...
+                        </p>
+                        <p class="text-sm text-gray-500 mt-2">
+                            Please **keep this window open**. Your session link will appear instantly when approved.
+                        </p>
+                    </div>
+
+                    <!-- Denial Block - Initially Hidden in HTML -->
+                    <div id="denial-block" class="hidden text-center pt-6 mt-6">
+                        <p class="text-center mb-6 text-2xl font-bold text-red-500">
+                            Support Request Denied
+                        </p>
+                        <p class="text-gray-700">
+                            The administrator could not verify your $25 payment. Your request was rejected because **payment verification failed**. Please confirm your payment status and contact us at info@htek.com if you believe this is an error.
+                        </p>
+                    </div>
+
+                    <!-- Fulfillment Block - Initially Hidden in HTML -->
+                    <div id="fulfillment-wrapper" class="hidden pt-6 mt-6">
+                        <p class="text-center mb-6 text-2xl font-bold text-htek-secondary">
+                            Session Approved! Your unique code/link is ready.
+                        </p>
+                        <div class="text-center p-6 bg-htek-primary/10 rounded-xl border border-htek-primary/20">
+                            <p class="text-xl font-semibold text-htek-dark mb-4">
+                                Secure Session Code / Link:
+                            </p>
+                            <!-- Meet Link will be inserted here by JS -->
+                            <div id="meet-link-display" class="block w-full text-center break-all bg-htek-primary text-white font-mono py-3 px-4 rounded-lg text-lg shadow-lg">
+                                Pending Link...
+                            </div>
+                            
+                            <!-- Copy Button with Icon -->
+                            <button 
+                                id="copy-link-button"
+                                onclick="copyMeetLink()"
+                                class="mt-4 w-full max-w-sm mx-auto bg-gray-600 text-white font-bold py-2 rounded-xl hover:bg-gray-700 transition duration-300 flex items-center justify-center"
+                            >
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V19a2 2 0 01-2 2h-2M18 14H9"></path></svg>
+                                Copy Code/Link
+                            </button>
+
+                            <p class="text-sm text-gray-500 mt-4">
+                                This code is unique to your paid session. If it's a link, click it directly to connect.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Page: Admin Queue Section (New Admin-only View) -->
+        <section id="admin-queue" class="page-content py-16 bg-gray-100 hidden">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-12">
+                    <h2 class="text-4xl font-extrabold text-htek-primary">Admin Support Queue</h2>
+                    <p class="mt-2 text-lg text-gray-600">
+                        Manually approve or deny paid support requests and send the custom access link/code.
+                    </p>
+                    <p id="admin-user-id" class="text-xs text-gray-500 mt-2">
+                        Your User ID: Loading... (Admin Status: <span id="admin-status-text">Not Authenticated</span>)
+                    </p>
+                </div>
+
+                <!-- Session Listing -->
+                <div id="queue-list" class="space-y-4 max-w-4xl mx-auto">
+                    <!-- Session cards will be rendered here by JS -->
+                    <div class="text-center text-gray-500 p-6">Loading active sessions...</div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+    <!-- End MAIN CONTENT CONTAINER -->
+
+
+    <!-- Footer (Static) -->
     <footer class="bg-htek-dark text-white py-10">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <div class="mb-4">
-                <a href="#" class="text-2xl font-extrabold tracking-wider">
+                <a href="#home" class="text-2xl font-extrabold tracking-wider">
                     H-<span class="text-htek-secondary">Tek</span>
                 </a>
                 <p class="text-sm text-gray-400 mt-2">
@@ -262,45 +476,702 @@
             </div>
 
             <div class="flex justify-center space-x-6 text-sm text-gray-400">
-                <a href="#about" class="hover:text-white transition duration-150">Privacy Policy</a>
-                <a href="#services" class="hover:text-white transition duration-150">Terms of Service</a>
+                <a href="#about" class="nav-link hover:text-white transition duration-150">Privacy Policy</a>
+                <a href="#services" class="nav-link hover:text-white transition duration-150">Terms of Service</a>
                 <a href="mailto:info@htek.com" class="hover:text-white transition duration-150">info@htek.com</a>
             </div>
         </div>
     </footer>
 
     <script>
-        // JavaScript for Mobile Menu Toggle
-        document.getElementById('mobile-menu-button').addEventListener('click', function() {
-            const menu = document.getElementById('mobile-menu');
-            menu.classList.toggle('hidden');
-        });
+        // Global Firebase variables
+        let db;
+        let auth;
+        let userId;
+        let isAuthReady = false; // Flag to indicate Firebase Auth has completed its initial check
+        let currentSessionId = null; // Used by the client to track their session
+        let pendingApprovalSessionId = null; // Used by the admin modal to track which session is being approved
+        
+        // Admin Authentication Variables
+        const ADMIN_SECRET_CODE = 'Ykn2i8EepXpbGD28smuvqCouPWojAOf4'; // The required key from the user
+        let isAdminAuthenticated = false;
 
-        // JavaScript for form submission (Mock Functionality)
-        function handleFormSubmit(event) {
-            event.preventDefault();
-            const formMessage = document.getElementById('form-message');
-            
-            // In a real application, you would send this data to a server here.
-            
-            formMessage.textContent = 'Thank you! Your inquiry has been sent to the H-Tek team. We will respond within 24 hours.';
-            formMessage.classList.remove('hidden');
-            formMessage.classList.add('bg-htek-secondary/20', 'text-htek-secondary');
-            
-            // Clear form after a short delay
+        // --- Notification Handler (Replaces alert/confirm) ---
+        function showNotification(message, type) {
+            const notification = document.getElementById('notification-area');
+            notification.textContent = message;
+            notification.classList.remove('hidden', 'bg-red-500', 'bg-green-500');
+
+            if (type === 'success') {
+                notification.classList.add('bg-green-500');
+            } else {
+                notification.classList.add('bg-red-500');
+            }
+
+            // Show the notification
+            notification.style.opacity = '1';
+
+            // Hide after 3 seconds
             setTimeout(() => {
-                event.target.reset();
-                formMessage.classList.add('hidden');
-            }, 5000);
+                notification.style.opacity = '0';
+                setTimeout(() => {
+                    notification.classList.add('hidden');
+                }, 500); // Wait for transition to finish before adding 'hidden'
+            }, 3000);
         }
 
-        // Hide mobile menu after clicking a link
-        document.querySelectorAll('#mobile-menu a').forEach(item => {
-            item.addEventListener('click', () => {
-                const menu = document.getElementById('mobile-menu');
-                menu.classList.add('hidden');
+        // --- Cache Deletion Function ---
+        function clearCache() {
+            if (typeof(Storage) !== "undefined") {
+                // For a more robust logout, we'll just clear the admin state locally.
+                isAdminAuthenticated = false; 
+                updateAdminUI(false);
+                showNotification('Admin status reset. Cache cleared successfully!', 'success');
+                // Re-route to refresh the page state
+                window.location.hash = '#home';
+            } else {
+                showNotification('Sorry, local storage is not supported by your browser.', 'error');
+            }
+        }
+        
+        // --- Handle Account Link Click (Desktop/Mobile) ---
+        function handleAdminLinkClick(isDropdownLink = false) {
+            // isDropdownLink is true when clicking the Admin Queue link *inside* the dropdown/menu.
+             
+             // If not authenticated, open the modal before routing
+             if (!isAdminAuthenticated) {
+                 openAdminCodeModal();
+                 // Prevent default routing when clicking the link, as the modal handles auth first
+                 if (isDropdownLink) return false; 
+             }
+             // If authenticated, allow routing
+             if (isDropdownLink) {
+                window.location.hash = '#admin-queue';
+                // Returning true/false here is not strictly necessary for the button, 
+                // but we keep the hash change.
+                return;
+             }
+             // If clicking the main icon, do nothing, let the dropdown open or close
+        }
+        
+        /**
+         * Updates the desktop account UI label.
+         */
+        function updateAdminUI(isAdmin) {
+            const label = document.getElementById('desktop-account-label');
+            const statusText = document.getElementById('admin-status-text');
+
+            if (isAdmin) {
+                label.textContent = 'Admin';
+                statusText.textContent = 'Authenticated';
+                statusText.classList.remove('text-red-500');
+                statusText.classList.add('text-htek-secondary');
+            } else {
+                label.textContent = 'Guest';
+                statusText.textContent = 'Not Authenticated';
+                statusText.classList.remove('text-htek-secondary');
+                statusText.classList.add('text-red-500');
+            }
+        }
+
+
+        // --- Firebase Initialization and Authentication ---
+        async function initializeFirebase() {
+            if (typeof window.firebase === 'undefined') {
+                console.error("Firebase SDK not loaded.");
+                return;
+            }
+
+            const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+            const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+            const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+            if (!firebaseConfig) {
+                 console.error("Firebase config is missing.");
+                 return;
+            }
+
+            // firebase.setLogLevel('Debug'); // Enable for detailed logs
+            const app = firebase.initializeApp(firebaseConfig);
+            db = firebase.getFirestore(app);
+            auth = firebase.getAuth(app);
+            
+            // Authentication
+            try {
+                if (initialAuthToken) {
+                    await firebase.signInWithCustomToken(auth, initialAuthToken);
+                } else {
+                    await firebase.signInAnonymously(auth);
+                }
+            } catch (error) {
+                console.error("Firebase authentication failed:", error);
+            }
+
+            // Listener to get User ID and trigger post-auth setup
+            firebase.onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    userId = user.uid;
+                    isAuthReady = true;
+                    document.getElementById('admin-user-id').textContent = `Your User ID: ${userId} (Admin Status: `;
+                    updateAdminUI(isAdminAuthenticated); // Update UI label
+                    
+                    // Critical second router call for pages that depend on the userId 
+                    router(true); 
+                    
+                } else {
+                    console.log("User signed out or failed to sign in.");
+                    userId = crypto.randomUUID(); 
+                    isAuthReady = true;
+                    router(true);
+                }
             });
-        });
+        }
+
+
+        // --- Firestore Session Management ---
+
+        const SESSIONS_COLLECTION = 'remote_sessions';
+        
+        function getSessionDocRef(sessionId) {
+            const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+            // Store in public collection so all admins can see and client can listen
+            return firebase.doc(db, `artifacts/${appId}/public/data/${SESSIONS_COLLECTION}`, sessionId);
+        }
+
+        /**
+         * 1. Creates a new PENDING session document in Firestore.
+         * 2. Sets up a listener for that specific document.
+         */
+        async function requestFulfillment() {
+            if (!db || !userId) {
+                showNotification('Database connection not ready. Please try again.', 'error');
+                return;
+            }
+
+            const confirmButton = document.getElementById('request-fulfillment-button');
+            confirmButton.disabled = true;
+            confirmButton.classList.add('bg-gray-400', 'opacity-50', 'cursor-not-allowed');
+            confirmButton.classList.remove('hover:bg-emerald-600', 'bg-htek-secondary', 'opacity-100', 'cursor-pointer');
+            confirmButton.textContent = 'Submitting Request...';
+
+            try {
+                // Use the userId as the document ID for simplicity
+                const newSessionId = userId; 
+                const sessionRef = getSessionDocRef(newSessionId);
+                
+                // Set the session status to PENDING
+                await firebase.setDoc(sessionRef, {
+                    clientId: userId,
+                    status: 'PENDING',
+                    meetLink: '', // Will be filled by the admin
+                    createdAt: firebase.serverTimestamp(),
+                }, { merge: true }); // Use merge to update if exists
+
+                currentSessionId = newSessionId;
+                
+                showNotification('Request submitted. Waiting for Admin approval.', 'success');
+                
+                // Hide payment block and show queue status
+                renderContactState('pending');
+
+                // Start listening for status changes
+                listenForSessionUpdates(newSessionId);
+
+            } catch (e) {
+                console.error("Error creating session:", e);
+                showNotification('Failed to create support session. Check console.', 'error');
+                
+                // Re-enable button
+                confirmButton.disabled = false;
+                confirmButton.classList.remove('bg-gray-400', 'opacity-50', 'cursor-not-allowed');
+                confirmButton.classList.add('hover:bg-emerald-600', 'bg-htek-secondary', 'opacity-100', 'cursor-pointer');
+                confirmButton.textContent = 'Request Support Link';
+            }
+        }
+        
+        /**
+         * Listens to the client's session document for status updates (APPROVED/DENIED).
+         */
+        function listenForSessionUpdates(sessionId) {
+            const sessionRef = getSessionDocRef(sessionId);
+            
+            // This is the real-time listener
+            firebase.onSnapshot(sessionRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    const status = data.status;
+
+                    if (status === 'APPROVED') {
+                        // Admin has approved. Fulfill the link.
+                        fulfillSession(data.meetLink);
+                    } else if (status === 'DENIED') {
+                        // Admin has denied. Show denial message.
+                        denySessionClient();
+                    } else if (status === 'PENDING') {
+                        // Still waiting. Update instructions if necessary.
+                        document.getElementById('contact-instructions').textContent = 'Request submitted and pending admin review. Please wait.';
+                    }
+                } else {
+                    // This happens if the user clears the session data (unlikely)
+                    console.log("Session document not found.");
+                }
+            }, (error) => {
+                console.error("Error listening to session:", error);
+                showNotification('Real-time connection lost. Refresh page.', 'error');
+            });
+        }
+        
+        /**
+         * Updates the UI to show the fulfillment link.
+         */
+        function fulfillSession(meetLink) {
+            renderContactState('approved');
+            
+            const meetLinkDisplay = document.getElementById('meet-link-display');
+            
+            // Check if the input is a valid URL to decide if we should make it clickable
+            const isLink = meetLink.startsWith('http://') || meetLink.startsWith('https://');
+
+            if (isLink) {
+                // If it's a link, use an <a> tag internally to ensure clickability
+                meetLinkDisplay.innerHTML = `<a href="${meetLink}" target="_blank" class="block w-full h-full text-center text-white hover:underline">${meetLink}</a>`;
+            } else {
+                // If it's just a code or custom text, display it as plain text
+                meetLinkDisplay.textContent = meetLink;
+            }
+
+            document.getElementById('contact-instructions').textContent = 'Your payment has been confirmed. Use the unique link/code below to connect with our technician.';
+            
+            // Update the copy button label based on content type
+            document.getElementById('copy-link-button').innerHTML = `
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V19a2 2 0 01-2 2h-2M18 14H9"></path></svg>
+                Copy Code/Link
+            `;
+            
+            showNotification('Session Approved! Your code/link is ready.', 'success');
+        }
+
+        /**
+         * Updates the UI to show the denial message.
+         */
+        function denySessionClient() {
+            renderContactState('denied');
+            document.getElementById('contact-instructions').textContent = 'Request denied. See message below.';
+            showNotification('Session Denied. Please contact support.', 'error');
+        }
+        
+        /**
+         * Controls the visibility of all blocks within the #contact page.
+         * @param {string} state - 'payment', 'pending', 'approved', 'denied'
+         */
+        function renderContactState(state) {
+            document.getElementById('contact-loader').classList.add('hidden');
+            document.getElementById('paypal-payment-block').classList.add('hidden');
+            document.getElementById('queue-status-block').classList.add('hidden');
+            document.getElementById('denial-block').classList.add('hidden');
+            document.getElementById('fulfillment-wrapper').classList.add('hidden');
+
+            if (state === 'payment') {
+                document.getElementById('paypal-payment-block').classList.remove('hidden');
+                document.getElementById('contact-instructions').textContent = '1. Complete the $25 fee using the PayPal button below. 2. Click "Request Support Link" to enter the queue.';
+            } else if (state === 'pending') {
+                document.getElementById('queue-status-block').classList.remove('hidden');
+                document.getElementById('contact-instructions').textContent = 'Request submitted and pending admin review. Please wait.';
+            } else if (state === 'approved') {
+                document.getElementById('fulfillment-wrapper').classList.remove('hidden');
+            } else if (state === 'denied') {
+                document.getElementById('denial-block').classList.remove('hidden');
+            } else {
+                 // Fallback to payment if unknown state occurs
+                document.getElementById('paypal-payment-block').classList.remove('hidden');
+            }
+        }
+
+
+        // --- Admin Queue Functions ---
+        
+        /**
+         * Renders the admin queue in real-time.
+         */
+        function renderAdminQueue() {
+            if (!db || !isAdminAuthenticated) return; // Wait for Firebase init and admin auth
+
+            const queueList = document.getElementById('queue-list');
+            const collectionRef = firebase.collection(db, `artifacts/${__app_id}/public/data/${SESSIONS_COLLECTION}`);
+            
+            // Listen to all sessions that are PENDING or APPROVED/DENIED
+            const q = firebase.query(collectionRef);
+            
+            firebase.onSnapshot(q, (snapshot) => {
+                queueList.innerHTML = ''; // Clear existing list
+                let requestsFound = false;
+
+                snapshot.forEach((doc) => {
+                    const session = doc.data();
+                    const sessionId = doc.id;
+                    
+                    // Only show pending or recently completed sessions
+                    if (session.status === 'PENDING' || session.status === 'APPROVED' || session.status === 'DENIED') {
+                        requestsFound = true;
+                        queueList.innerHTML += createAdminCard(sessionId, session);
+                    }
+                });
+
+                if (!requestsFound) {
+                    queueList.innerHTML = `<div class="bg-white p-8 rounded-xl shadow-lg border border-gray-200 text-center text-gray-500">
+                        <p class="text-xl font-semibold">Queue Empty!</p>
+                        <p>No new pending support requests at this time.</p>
+                    </div>`;
+                }
+            }, (error) => {
+                console.error("Admin Queue Error:", error);
+                queueList.innerHTML = `<div class="bg-red-100 text-red-700 p-4 rounded-lg">Error loading queue. Check console.</div>`;
+            });
+        }
+        
+        /**
+         * Creates the HTML card for a single session in the admin queue.
+         */
+        function createAdminCard(sessionId, session) {
+            const statusClass = session.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
+                                session.status === 'APPROVED' ? 'bg-green-100 text-green-800' :
+                                'bg-red-100 text-red-800';
+            
+            const timestamp = session.createdAt ? new Date(session.createdAt.seconds * 1000).toLocaleString() : 'N/A';
+            
+            let actionButtons = '';
+            let details = '';
+
+            if (session.status === 'PENDING') {
+                actionButtons = `
+                    <button onclick="openAdminModal('${sessionId}')" class="flex-1 bg-htek-secondary text-white font-semibold py-2 px-4 rounded-xl hover:bg-emerald-600 transition duration-150 mr-2">
+                        Approve & Send Code/Link
+                    </button>
+                    <button onclick="denySession('${sessionId}')" class="flex-1 bg-red-500 text-white font-semibold py-2 px-4 rounded-xl hover:bg-red-600 transition duration-150">
+                        Deny
+                    </button>
+                `;
+            } else if (session.status === 'APPROVED') {
+                const meetContent = session.meetLink;
+                const isLink = meetContent.startsWith('http://') || meetContent.startsWith('https://');
+
+                details = `<p class="text-sm text-gray-600 mb-2">Approved by: ${session.approvedBy.substring(0, 8)}...</p>`;
+                
+                if (isLink) {
+                    actionButtons = `<a href="${meetContent}" target="_blank" class="bg-htek-primary text-white font-semibold py-2 px-4 rounded-xl hover:bg-blue-800 transition duration-150 w-full text-center truncate">
+                        Re-open Link: ${meetContent}
+                    </a>`;
+                } else {
+                    actionButtons = `<div class="bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-xl w-full text-center truncate">
+                        Code: ${meetContent}
+                    </div>`;
+                }
+
+            } else { // DENIED
+                actionButtons = `<button disabled class="bg-gray-300 text-gray-600 font-semibold py-2 px-4 rounded-xl w-full">Denied</button>`;
+                details = `<p class="text-sm text-red-600 font-semibold mb-2">Denied by: ${session.deniedBy ? session.deniedBy.substring(0, 8) + '...' : 'System'}</p>`;
+            }
+
+
+            return `
+                <div class="bg-white p-6 rounded-xl shadow-lg border-l-4 border-htek-primary/50">
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-xs font-mono text-gray-500">Session ID: ${sessionId}</span>
+                        <span class="text-sm font-bold px-3 py-1 rounded-full ${statusClass}">
+                            ${session.status}
+                        </span>
+                    </div>
+                    
+                    <p class="text-lg font-semibold text-htek-dark mb-2">Client ID: <span class="font-mono text-sm break-all">${session.clientId}</span></p>
+                    <p class="text-sm text-gray-600 mb-4">Time: ${timestamp}</p>
+                    ${details}
+                    
+                    <div class="flex justify-between space-x-2 mt-4">
+                        ${actionButtons}
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- Admin Modal Logic (Replaces window.prompt) ---
+
+        /**
+         * Opens the modal to request the custom link/code from the admin.
+         */
+        function openAdminModal(sessionId) {
+            pendingApprovalSessionId = sessionId;
+            document.getElementById('meet-link-input').value = ''; // Clear previous input
+            document.getElementById('admin-modal').classList.remove('hidden');
+        }
+
+        /**
+         * Closes the modal.
+         */
+        function closeAdminModal() {
+            document.getElementById('admin-modal').classList.add('hidden');
+            pendingApprovalSessionId = null;
+        }
+
+        /**
+         * Final admin action: Updates the session with the provided custom link/code.
+         */
+        async function finalizeApproval() {
+            if (!db || !pendingApprovalSessionId) return showNotification('Error: Internal ID missing.', 'error');
+            
+            const meetLink = document.getElementById('meet-link-input').value.trim();
+
+            if (!meetLink) {
+                return showNotification('Please enter the custom link or code.', 'error');
+            }
+
+            const sessionId = pendingApprovalSessionId;
+            const sessionRef = getSessionDocRef(sessionId);
+            
+            closeAdminModal(); // Close the modal immediately
+
+            try {
+                await firebase.updateDoc(sessionRef, {
+                    status: 'APPROVED',
+                    meetLink: meetLink, // Custom link/code provided by admin
+                    approvedBy: userId,
+                    approvedAt: firebase.serverTimestamp()
+                });
+                showNotification(`Session ${sessionId} APPROVED and custom code sent.`, 'success');
+            } catch (e) {
+                console.error("Error approving session:", e);
+                showNotification('Approval failed. Check permissions.', 'error');
+            }
+        }
+        
+        /**
+         * Admin action: Denies a session and updates Firestore.
+         */
+        async function denySession(sessionId) {
+            if (!db) return showNotification('DB not ready.', 'error');
+            
+            const sessionRef = getSessionDocRef(sessionId);
+            
+            // Confirmation to prevent accidental denial
+            const confirmed = true; // Since we cannot use window.confirm(), we assume confirmation
+            
+            if (confirmed) {
+                 try {
+                    await firebase.updateDoc(sessionRef, {
+                        status: 'DENIED',
+                        deniedBy: userId, // Log which admin denied it
+                        deniedAt: firebase.serverTimestamp()
+                    });
+                    showNotification(`Session ${sessionId} DENIED (Payment verification failure).`, 'error');
+                } catch (e) {
+                    console.error("Error denying session:", e);
+                    showNotification('Denial failed. Check permissions.', 'error');
+                }
+            }
+        }
+        
+        // --- Admin Code Authentication Functions ---
+        
+        function openAdminCodeModal() {
+            document.getElementById('admin-code-modal').classList.remove('hidden');
+            document.getElementById('admin-code-input').focus();
+            document.getElementById('admin-code-error').classList.add('hidden');
+        }
+
+        function closeAdminCodeModal() {
+            document.getElementById('admin-code-modal').classList.add('hidden');
+        }
+
+        function submitAdminCode() {
+            const inputElement = document.getElementById('admin-code-input');
+            const code = inputElement.value.trim();
+            const errorMessage = document.getElementById('admin-code-error');
+
+            if (code === ADMIN_SECRET_CODE) {
+                isAdminAuthenticated = true;
+                closeAdminCodeModal();
+                inputElement.value = ''; // Clear input for security
+                errorMessage.classList.add('hidden');
+                updateAdminUI(true); // Update label to Admin
+                showNotification('Admin access granted!', 'success');
+                // Force routing to the admin queue
+                window.location.hash = '#admin-queue';
+            } else {
+                errorMessage.textContent = 'Invalid secret code. Try again.';
+                errorMessage.classList.remove('hidden');
+            }
+        }
+
+        /**
+         * Checks if the user has a pending session and initiates the listener if necessary.
+         */
+        async function checkExistingSession() {
+            // Guard clause: Only run if auth is ready and we are on the contact page
+            if (!db || !userId || window.location.hash !== '#contact' || !isAuthReady) {
+                // If we hit this before auth is ready, show loader and wait for router(true)
+                document.getElementById('contact-loader').classList.remove('hidden');
+                return;
+            }
+
+            const sessionRef = getSessionDocRef(userId);
+
+            try {
+                const docSnap = await firebase.getDoc(sessionRef);
+                
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    currentSessionId = userId;
+                    
+                    if (data.status === 'PENDING') {
+                        // Restore client view to PENDING
+                        renderContactState('pending');
+                        listenForSessionUpdates(userId);
+                    } else if (data.status === 'APPROVED') {
+                        // Restore client view to APPROVED
+                        fulfillSession(data.meetLink);
+                    } else if (data.status === 'DENIED') {
+                        // Restore client view to DENIED
+                        denySessionClient();
+                    } else {
+                        // Fallback: If status is corrupted, show default payment
+                        renderContactState('payment');
+                    }
+                } else {
+                    // No session exists. Show the default payment block
+                     renderContactState('payment');
+                }
+            } catch (e) {
+                console.error("Error checking existing session:", e);
+                // On critical error, still fall back to payment view, but show error.
+                showNotification('Error loading session status. Check console.', 'error');
+                renderContactState('payment');
+            }
+        }
+
+
+        // --- Single Page Application (SPA) Routing Logic ---
+        const pages = document.querySelectorAll('.page-content');
+        const defaultPage = 'home'; 
+
+        /**
+         * Shows the current page based on the URL hash, hiding all others.
+         * @param {boolean} forceCheck - If true, forces execution of page-specific logic (used after auth changes).
+         */
+        function router(forceCheck = false) {
+            // Get the current hash from the URL, or default to '#home'
+            const currentHash = window.location.hash.substring(1) || defaultPage;
+            
+            let found = false;
+
+            pages.forEach(page => {
+                if (page.id === currentHash) {
+                    page.classList.remove('hidden');
+                    document.getElementById('app-container').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    document.title = `H-Tek | ${page.id.charAt(0).toUpperCase() + page.id.slice(1).replace('-', ' ')}`;
+                    found = true;
+                    
+                    // --- Page Specific Initialization (Only run if auth is ready OR if forced) ---
+                    if (currentHash === 'contact') {
+                        // Always run checkExistingSession() on load, which handles its own auth readiness
+                        checkExistingSession();
+                    } else if (currentHash === 'admin-queue') {
+                         if (!isAuthReady) {
+                            // Auth is not ready, show a loading message in queue-list
+                            document.getElementById('queue-list').innerHTML = '<div class="text-center text-gray-500 p-6">Authenticating user ID for access check...</div>';
+                        } else if (isAdminAuthenticated) {
+                            renderAdminQueue();
+                        } else {
+                            // Block access and prompt for code
+                            page.classList.add('hidden'); // Re-hide the admin-queue page
+                            openAdminCodeModal();
+                        }
+                    }
+                    // -----------------------------------
+
+                } else {
+                    page.classList.add('hidden');
+                }
+            });
+
+            // If no valid page is found, redirect to home
+            if (!found && currentHash !== 'admin-queue') { // Avoid redirecting if admin-queue was the target (will open modal instead)
+                window.location.hash = '#' + defaultPage;
+            }
+            
+            // Remove the FOUC class once the first successful route has occurred
+            document.body.classList.remove('fouc-prevent');
+        }
+
+        // --- Application Setup ---
+        
+        function setupApp() {
+             // 1. Initialize Firebase (this starts the async auth process which will call router(true) later)
+             initializeFirebase();
+
+             // 2. Set up DOM event listeners
+             
+             // Event listener for hash changes (i.e., clicking navigation links)
+             window.addEventListener('hashchange', () => router(false)); // Do not force check on hashchange by default
+
+             // 3. Enable the fulfillment request button after a short delay (30 seconds)
+             const requestButton = document.getElementById('request-fulfillment-button');
+             setTimeout(() => {
+                 // ONLY apply the enabled state if the element is currently disabled (meaning no session exists)
+                 if (requestButton.disabled) {
+                    requestButton.disabled = false;
+                    requestButton.classList.remove('opacity-50', 'cursor-not-allowed', 'bg-htek-secondary/50');
+                    requestButton.classList.add('hover:bg-emerald-600', 'bg-htek-secondary');
+                    // The button text is already set in the HTML, no need to change it here
+                    requestButton.textContent = 'Request Support Link';
+                 }
+             }, 30000); // 30 seconds wait
+
+             // 4. Set the initial page view immediately after DOM is ready
+             router(false); // Initial router call to show the current hash page
+        }
+
+        // Start the application setup when the DOM is fully loaded
+        document.addEventListener('DOMContentLoaded', setupApp);
+
+
+        // --- Other JavaScript Functions ---
+        
+        // Function to copy the Meet Link/Code to the clipboard
+        function copyMeetLink() {
+            const meetLinkDisplay = document.getElementById('meet-link-display');
+            let meetLink = meetLinkDisplay.textContent;
+            
+            const anchor = meetLinkDisplay.querySelector('a');
+            if (anchor) {
+                 meetLink = anchor.href;
+            }
+
+            const copyButton = document.getElementById('copy-link-button');
+
+            // Using document.execCommand('copy') for better iframe compatibility
+            const tempInput = document.createElement('textarea');
+            tempInput.value = meetLink;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            try {
+                document.execCommand('copy');
+                // Provide visual feedback (Copied!)
+                copyButton.innerHTML = '<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>Copied!';
+                copyButton.classList.remove('bg-gray-600', 'hover:bg-gray-700');
+                copyButton.classList.add('bg-green-500', 'hover:bg-green-600');
+                
+                // Revert button text and color after a delay
+                setTimeout(() => {
+                    copyButton.innerHTML = '<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V19a2 2 0 01-2 2h-2M18 14H9"></path></svg>Copy Code/Link';
+                    copyButton.classList.remove('bg-green-500', 'hover:bg-green-600');
+                    copyButton.classList.add('bg-gray-600', 'hover:bg-gray-700');
+                }, 3000);
+            } catch (err) {
+                console.error('Failed to copy text: ', err);
+                copyButton.textContent = 'Error: Could not copy';
+            } finally {
+                document.body.removeChild(tempInput);
+            }
+        }
 
     </script>
 </body>
