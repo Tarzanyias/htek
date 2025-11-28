@@ -42,7 +42,7 @@
         }
         .card-hover:hover {
             transform: translateY(-5px);
-            box-shadow: 0 20px 25px -5px rgba(16, 185, 129, 0.2), 0 8px 10px -6px rgba(16, 185, 129, 0.1);
+            box-shadow: 0 20px 25px -5px rgba(16, 185, 129, 0.2), 0 8px 10px -6p x rgba(16, 185, 129, 0.1);
         }
         /* Style to ensure hidden sections don't take up space */
         .page-content.hidden {
@@ -1005,10 +1005,9 @@
          * Checks if the user has a pending session and initiates the listener if necessary.
          */
         async function checkExistingSession() {
-            // Guard clause: Only run if auth is ready and we are on the contact page
-            if (!db || !userId || window.location.hash !== '#contact' || !isAuthReady) {
-                // If we hit this before auth is ready, show loader and wait for router(true)
-                document.getElementById('contact-loader').classList.remove('hidden');
+            // Guard clause: Only run if DB and User ID are definitively set (router now handles isAuthReady check)
+            if (!db || !userId || window.location.hash !== '#contact') {
+                console.warn("checkExistingSession called without critical dependencies.");
                 return;
             }
 
@@ -1069,10 +1068,21 @@
                     document.title = `H-Tek | ${page.id.charAt(0).toUpperCase() + page.id.slice(1).replace('-', ' ')}`;
                     found = true;
                     
-                    // --- Page Specific Initialization (Only run if auth is ready OR if forced) ---
+                    // --- Page Specific Initialization (Critical Fix Applied Here) ---
                     if (currentHash === 'contact') {
-                        // Always run checkExistingSession() on load, which handles its own auth readiness
-                        checkExistingSession();
+                        if (isAuthReady) {
+                            // Auth is ready, proceed with checking session status
+                            checkExistingSession();
+                        } else {
+                            // Auth is NOT ready. Manually show the loading state and wait for onAuthStateChanged -> router(true)
+                            document.getElementById('contact-loader').classList.remove('hidden');
+                            document.getElementById('contact-instructions').textContent = 'Loading support session status...';
+                            // Hide all other potential blocks to ensure only the loader is visible
+                            document.getElementById('paypal-payment-block').classList.add('hidden');
+                            document.getElementById('queue-status-block').classList.add('hidden');
+                            document.getElementById('denial-block').classList.add('hidden');
+                            document.getElementById('fulfillment-wrapper').classList.add('hidden');
+                        }
                     } else if (currentHash === 'admin-queue') {
                          if (!isAuthReady) {
                             // Auth is not ready, show a loading message in queue-list
