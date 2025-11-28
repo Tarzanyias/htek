@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>H-Tek | Home Page</title>
-    <!-- PayPal SDK Loaded from the user's provided config. This is correct. -->
+    <!-- PayPal SDK Loaded -->
     <script 
   src="https://www.paypal.com/sdk/js?client-id=BAAAlaRxA3KbFZr2em3TUeirbZdGSngwcyHMItxDS_YPYIFuSH1BfIKdY5wRjmhJMC0XvPmC7t0Lh5S57c&components=hosted-buttons&enable-funding=venmo&currency=USD">
 </script>
@@ -357,21 +357,6 @@
                         <!-- PayPal Button Container (Styled via CSS in the <style> block) -->
                         <div id="paypal-container-HZAT6FFZEVU84" class="w-full"></div>
                         
-                        <!-- PayPal Button Render Script -->
-                        <script>
-                            // This ensures the button is only rendered once.
-                            document.addEventListener('DOMContentLoaded', () => {
-                                if (typeof paypal !== 'undefined' && document.getElementById('paypal-container-HZAT6FFZEVU84')) {
-                                    paypal.HostedButtons({
-                                        hostedButtonId: "HZAT6FFZEVU84",
-                                    }).render("#paypal-container-HZAT6FFZEVU84").catch(err => {
-                                        // This catches the persistent "Can not read window host" error in the iframe, 
-                                        // but the button usually renders despite the error.
-                                        console.warn("PayPal Render Warning/Error:", err);
-                                    });
-                                }
-                            });
-                        </script>
                         
                         <!-- Request Fulfillment Button: Initially styled as disabled, enabled after 30s. -->
                         <button 
@@ -761,10 +746,32 @@
         }
         
         /**
+         * Renders the PayPal button only once when the payment block is displayed.
+         */
+        let isPayPalButtonRendered = false;
+        function renderPayPalButton() {
+            if (isPayPalButtonRendered) return;
+
+             if (typeof paypal !== 'undefined' && document.getElementById('paypal-container-HZAT6FFZEVU84')) {
+                paypal.HostedButtons({
+                    hostedButtonId: "HZAT6FFZEVU84",
+                }).render("#paypal-container-HZAT6FFZEVU84").catch(err => {
+                    // This catches the persistent "Can not read window host" error in the iframe, 
+                    // but the button usually renders despite the error.
+                    console.warn("PayPal Render Warning/Error:", err);
+                });
+                isPayPalButtonRendered = true;
+            } else {
+                console.warn("PayPal SDK not yet available or container missing.");
+            }
+        }
+
+        /**
          * Controls the visibility of all blocks within the #contact page.
          * @param {string} state - 'payment', 'pending', 'approved', 'denied'
          */
         function renderContactState(state) {
+            // Hide everything first
             document.getElementById('contact-loader').classList.add('hidden');
             document.getElementById('paypal-payment-block').classList.add('hidden');
             document.getElementById('queue-status-block').classList.add('hidden');
@@ -774,6 +781,7 @@
             if (state === 'payment') {
                 document.getElementById('paypal-payment-block').classList.remove('hidden');
                 document.getElementById('contact-instructions').textContent = '1. Complete the $25 fee using the PayPal button below. 2. Click "Request Support Link" to enter the queue.';
+                renderPayPalButton(); // Render PayPal button here
             } else if (state === 'pending') {
                 document.getElementById('queue-status-block').classList.remove('hidden');
                 document.getElementById('contact-instructions').textContent = 'Request submitted and pending admin review. Please wait.';
@@ -784,6 +792,7 @@
             } else {
                  // Fallback to payment if unknown state occurs
                 document.getElementById('paypal-payment-block').classList.remove('hidden');
+                renderPayPalButton(); // Render PayPal button for fallback too
             }
         }
 
@@ -1011,6 +1020,10 @@
                 return;
             }
 
+            // Immediately set the state to loading (this is what ensures the spinner is visible)
+            document.getElementById('contact-loader').classList.remove('hidden');
+            document.getElementById('contact-instructions').textContent = 'Checking for existing session...';
+            
             const sessionRef = getSessionDocRef(userId);
 
             try {
@@ -1042,7 +1055,7 @@
                 console.error("Error checking existing session:", e);
                 // On critical error, still fall back to payment view, but show error.
                 showNotification('Error loading session status. Check console.', 'error');
-                renderContactState('payment');
+                renderContactState('payment'); // MUST call a state change function here
             }
         }
 
