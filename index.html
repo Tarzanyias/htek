@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>H-Tek | Donate Parts. Get Support. Power Community Tech.</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Configure Tailwind for custom colors and font -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'htek-primary': '#1e3a8a', // Deep Blue
+                        'htek-secondary': '#10b981', // Bright Emerald Green
+                        'htek-dark': '#0f172a', // Slate 900
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom styles for professional look, though mostly Tailwind is used */
+        .card-hover {
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(16, 185, 129, 0.2), 0 8px 10px -6px rgba(16, 185, 129, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans text-gray-800">
+
+    <!-- Navigation Bar -->
+    <header class="bg-htek-dark shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo -->
+                <a href="#" class="text-2xl font-extrabold text-white tracking-wider">
+                    H-<span class="text-htek-secondary">Tek</span>
+                </a>
+
+                <!-- Desktop Menu -->
+                <nav class="hidden md:flex space-x-8">
+                    <a href="#about" class="text-gray-300 hover:text-white transition duration-150">Our Mission</a>
+                    <a href="#services" class="text-gray-300 hover:text-white transition duration-150">Services</a>
+                    <a href="#donate" class="text-gray-300 hover:text-white transition duration-150">Donate Parts</a>
+                    <a href="#contact" class="px-3 py-1 text-white bg-htek-secondary rounded-full hover:bg-emerald-400 transition duration-150">Get Support</a>
+                </nav>
+
+                <!-- Mobile Menu Button (Hamburger) -->
+                <button id="mobile-menu-button" class="md:hidden text-gray-300 hover:text-white focus:outline-none">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Menu (Hidden by default) -->
+        <div id="mobile-menu" class="hidden md:hidden bg-htek-dark">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <a href="#about" class="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:bg-htek-primary hover:text-white">Our Mission</a>
+                <a href="#services" class="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:bg-htek-primary hover:text-white">Services</a>
+                <a href="#donate" class="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:bg-htek-primary hover:text-white">Donate Parts</a>
+                <a href="#contact" class="block px-3 py-2 rounded-md text-base font-medium text-white bg-htek-secondary hover:bg-emerald-400 mt-2">Get Support</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="bg-htek-primary text-white py-20 md:py-32">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h1 class="text-4xl sm:text-6xl font-extrabold leading-tight mb-4">
+                Powering PCs, <span class="text-htek-secondary">Empowering People.</span>
+            </h1>
+            <p class="text-xl sm:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto">
+                Donate your unused computer parts to support digital literacy projects, and get expert tech help for a small, affordable fee.
+            </p>
+            <div class="space-y-4 sm:space-y-0 sm:space-x-6">
+                <a href="#services" class="inline-block bg-htek-secondary text-htek-dark font-bold py-3 px-8 rounded-xl text-lg shadow-xl hover:bg-emerald-400 transition duration-300 transform hover:scale-105">
+                    Get Expert Tech Support
+                </a>
+                <a href="#donate" class="inline-block bg-white text-htek-primary font-bold py-3 px-8 rounded-xl text-lg shadow-xl hover:bg-gray-200 transition duration-300 transform hover:scale-105">
+                    Donate Your Parts Today
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Our Mission (About) Section -->
+    <section id="about" class="py-16 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center">
+                <h2 class="text-3xl font-extrabold text-htek-dark sm:text-4xl mb-4">Our Two-Part Mission</h2>
+                <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+                    H-Tek bridges the digital divide by accepting hardware donations and using the proceeds from our services to fund community tech projects.
+                </p>
+            </div>
+
+            <div class="mt-12 grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Mission Card 1: Services -->
+                <div class="bg-htek-primary/5 p-8 rounded-2xl shadow-lg border-t-4 border-htek-primary">
+                    <div class="flex items-center space-x-4 mb-4">
+                        <span class="text-4xl text-htek-primary">🔧</span>
+                        <h3 class="text-2xl font-bold text-htek-dark">Affordable Tech Support</h3>
+                    </div>
+                    <p class="text-gray-700">
+                        Get reliable help for software issues, hardware diagnosis, and performance tuning from our certified technicians, available online and in-person. Your small fee directly funds our community initiatives.
+                    </p>
+                    <a href="#services" class="mt-4 inline-block text-htek-primary font-semibold hover:text-htek-secondary transition duration-150">Explore Support Options &rarr;</a>
+                </div>
+
+                <!-- Mission Card 2: Donations -->
+                <div class="bg-htek-secondary/10 p-8 rounded-2xl shadow-lg border-t-4 border-htek-secondary">
+                    <div class="flex items-center space-x-4 mb-4">
+                        <span class="text-4xl text-htek-secondary">♻️</span>
+                        <h3 class="text-2xl font-bold text-htek-dark">Sustainable Hardware Donation</h3>
+                    </div>
+                    <p class="text-gray-700">
+                        Give new life to your old GPUs, RAM, CPUs, and peripherals. We refurbish, repurpose, or responsibly recycle every component, turning e-waste into educational resources.
+                    </p>
+                    <a href="#donate" class="mt-4 inline-block text-htek-secondary font-semibold hover:text-htek-primary transition duration-150">See How to Donate &rarr;</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section id="services" class="py-16 bg-gray-100">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-extrabold text-htek-dark sm:text-4xl">Expert Computer Support for a Small Fee</h2>
+                <p class="mt-4 text-lg text-gray-600">
+                    Your payment helps fund our mission. Get reliable, professional service without the big-box price tag.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Service Card 1: Online Support -->
+                <div class="card-hover bg-white p-6 md:p-10 rounded-xl shadow-xl border border-gray-200">
+                    <div class="text-5xl text-htek-primary mb-4">🖥️</div>
+                    <h3 class="text-2xl font-bold mb-3 text-htek-dark">Remote Diagnostics & Repair</h3>
+                    <p class="text-gray-600 mb-6">
+                        Get immediate assistance from anywhere. We securely connect to your PC to resolve software errors, virus removal, driver conflicts, and speed optimization issues.
+                    </p>
+                    <ul class="list-disc pl-5 text-gray-600 space-y-2">
+                        <li>Software installation & setup</li>
+                        <li>System cleanup and tune-up</li>
+                        <li>Quick troubleshooting session</li>
+                    </ul>
+                    <a href="#" class="mt-6 inline-block bg-htek-secondary text-white font-semibold py-2 px-6 rounded-full hover:bg-emerald-600 transition duration-300">
+                        Book Remote Session ($25 Fee)
+                    </a>
+                </div>
+
+                <!-- Service Card 2: In-Person Support -->
+                <div class="card-hover bg-white p-6 md:p-10 rounded-xl shadow-xl border border-gray-200">
+                    <div class="text-5xl text-htek-secondary mb-4">🛠️</div>
+                    <h3 class="text-2xl font-bold mb-3 text-htek-dark">On-Site & Drop-Off Services</h3>
+                    <p class="text-gray-600 mb-6">
+                        For complex hardware issues, component replacement, and network setup, our local team is ready to help (currently serving the Greater Metro Area).
+                    </p>
+                    <ul class="list-disc pl-5 text-gray-600 space-y-2">
+                        <li>Hardware replacement (RAM, SSD, etc.)</li>
+                        <li>Custom PC builds and upgrades</li>
+                        <li>In-depth diagnostics and repair</li>
+                    </ul>
+                    <a href="#" class="mt-6 inline-block bg-htek-primary text-white font-semibold py-2 px-6 rounded-full hover:bg-blue-800 transition duration-300">
+                        Request In-Person Quote ($50 Flat Rate + Parts)
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Donation (Call to Action) Section -->
+    <section id="donate" class="py-16 bg-htek-dark text-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h2 class="text-3xl font-extrabold sm:text-4xl text-htek-secondary mb-4">Ready to Clear Out the Clutter?</h2>
+            <p class="text-xl text-gray-300 mb-8 max-w-3xl mx-auto">
+                Your surplus computer parts—even non-working ones—can change someone's life by becoming a tool for education and opportunity.
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
+                <!-- Step 1 -->
+                <div class="p-6 bg-htek-primary rounded-xl card-hover">
+                    <span class="text-4xl font-bold text-htek-secondary block mb-3">1. Collect</span>
+                    <h4 class="text-xl font-semibold mb-2">Gather Your Gear</h4>
+                    <p class="text-gray-300">CPUs, GPUs, RAM, motherboards, monitors, keyboards, or even full towers you no longer need.</p>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="p-6 bg-htek-primary rounded-xl card-hover">
+                    <span class="text-4xl font-bold text-htek-secondary block mb-3">2. Contact</span>
+                    <h4 class="text-xl font-semibold mb-2">Schedule Drop-off or Pickup</h4>
+                    <p class="text-gray-300">Fill out our quick form or call us to arrange a safe, convenient way to transfer your donation.</p>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="p-6 bg-htek-primary rounded-xl card-hover">
+                    <span class="text-4xl font-bold text-htek-secondary block mb-3">3. Impact</span>
+                    <h4 class="text-xl font-semibold mb-2">See Your Impact</h4>
+                    <p class="text-gray-300">We'll provide a donation receipt and share stories of the projects your hardware makes possible.</p>
+                </div>
+            </div>
+
+            <a href="#" class="mt-12 inline-block bg-htek-secondary text-htek-dark font-bold py-3 px-10 rounded-full text-xl shadow-2xl hover:bg-emerald-400 transition duration-300 transform hover:scale-105">
+                Start Your Donation
+            </a>
+        </div>
+    </section>
+
+    <!-- Contact Form/Inquiry Section -->
+    <section id="contact" class="py-16 bg-white">
+        <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-extrabold text-htek-dark sm:text-4xl">Get in Touch</h2>
+                <p class="mt-4 text-lg text-gray-600">
+                    Have a specific problem or a question about a donation? Let us know.
+                </p>
+            </div>
+
+            <div class="bg-gray-100 p-8 rounded-xl shadow-lg">
+                <form onsubmit="handleFormSubmit(event)">
+                    <div class="mb-4">
+                        <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                        <input type="text" id="name" name="name" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-htek-primary focus:border-htek-primary" required>
+                    </div>
+                    <div class="mb-4">
+                        <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                        <input type="email" id="email" name="email" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-htek-primary focus:border-htek-primary" required>
+                    </div>
+                    <div class="mb-6">
+                        <label for="message" class="block text-sm font-medium text-gray-700 mb-1">Your Inquiry (Support or Donation)</label>
+                        <textarea id="message" name="message" rows="4" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-htek-primary focus:border-htek-primary" required></textarea>
+                    </div>
+                    <button type="submit" class="w-full bg-htek-primary text-white font-bold py-3 rounded-xl hover:bg-blue-800 transition duration-300">
+                        Submit Inquiry
+                    </button>
+                    <div id="form-message" class="mt-4 text-center hidden p-3 rounded-lg bg-green-100 text-green-700"></div>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-htek-dark text-white py-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <div class="mb-4">
+                <a href="#" class="text-2xl font-extrabold tracking-wider">
+                    H-<span class="text-htek-secondary">Tek</span>
+                </a>
+                <p class="text-sm text-gray-400 mt-2">
+                    &copy; 2024 H-Tek. All rights reserved. | Building a better digital future.
+                </p>
+            </div>
+
+            <div class="flex justify-center space-x-6 text-sm text-gray-400">
+                <a href="#about" class="hover:text-white transition duration-150">Privacy Policy</a>
+                <a href="#services" class="hover:text-white transition duration-150">Terms of Service</a>
+                <a href="mailto:info@htek.com" class="hover:text-white transition duration-150">info@htek.com</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // JavaScript for Mobile Menu Toggle
+        document.getElementById('mobile-menu-button').addEventListener('click', function() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        });
+
+        // JavaScript for form submission (Mock Functionality)
+        function handleFormSubmit(event) {
+            event.preventDefault();
+            const formMessage = document.getElementById('form-message');
+            
+            // In a real application, you would send this data to a server here.
+            
+            formMessage.textContent = 'Thank you! Your inquiry has been sent to the H-Tek team. We will respond within 24 hours.';
+            formMessage.classList.remove('hidden');
+            formMessage.classList.add('bg-htek-secondary/20', 'text-htek-secondary');
+            
+            // Clear form after a short delay
+            setTimeout(() => {
+                event.target.reset();
+                formMessage.classList.add('hidden');
+            }, 5000);
+        }
+
+        // Hide mobile menu after clicking a link
+        document.querySelectorAll('#mobile-menu a').forEach(item => {
+            item.addEventListener('click', () => {
+                const menu = document.getElementById('mobile-menu');
+                menu.classList.add('hidden');
+            });
+        });
+
+    </script>
+</body>
+</html>
