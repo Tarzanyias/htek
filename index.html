@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>H-Tek | Home Page</title>
+    <title>T&S | Home Page</title>
     <!-- PayPal SDK Loaded -->
     <script 
   src="https://www.paypal.com/sdk/js?client-id=BAAAlaRxA3KbFZr2em3TUeirbZdGSngwcyHMItxDS_YPYIFuSH1BfIKdY5wRjmhJMC0XvPmC7t0Lh5S57c&components=hosted-buttons&enable-funding=venmo&currency=USD">
@@ -18,9 +18,9 @@
             theme: {
                 extend: {
                     colors: {
-                        'htek-primary': '#1e3a8a', // Deep Blue
-                        'htek-secondary': '#10b981', // Bright Emerald Green
-                        'htek-dark': '#0f172a', // Slate 900
+                        'ts-primary': '#1e3a8a', // Deep Blue
+                        'ts-secondary': '#10b981', // Bright Emerald Green
+                        'ts-dark': '#0f172a', // Slate 900
                     },
                     fontFamily: {
                         sans: ['Inter', 'sans-serif'],
@@ -55,7 +55,7 @@
         }
         /* Spinner styles for the loading state (still useful for general page load) */
         .spinner {
-            border-top-color: #1e3a8a; /* htek-primary color */
+            border-top-color: #1e3a8a; /* ts-primary color */
             -webkit-animation: spin 1s linear infinite;
             animation: spin 1s linear infinite;
         }
@@ -82,12 +82,12 @@
     </div>
 
     <!-- Navigation Bar (Always Visible and Responsive) -->
-    <header class="bg-htek-dark shadow-lg sticky top-0 z-50">
+    <header class="bg-ts-dark shadow-lg sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
                 <!-- Logo: Link to #home (Always visible) -->
                 <a href="#home" class="text-2xl font-extrabold text-white tracking-wider flex-shrink-0">
-                    H-<span class="text-htek-secondary">Tek</span>
+                    T&<span class="text-ts-secondary">S</span>
                 </a>
 
                 <!-- Navigation Links and Account Icon -->
@@ -98,10 +98,10 @@
                     <a href="#donate" class="nav-link text-gray-300 hover:text-white transition duration-150 text-sm">Donate Parts</a>
                     
                     <!-- CTA Button (Always visible) -->
-                    <a href="#contact" class="nav-link px-3 py-1 text-white bg-htek-secondary rounded-full hover:bg-emerald-400 transition duration-150 text-sm sm:text-base">Get Support</a>
+                    <a href="#contact" class="nav-link px-3 py-1 text-white bg-ts-secondary rounded-full hover:bg-emerald-400 transition duration-150 text-sm sm:text-base">Get Support</a>
                     
                     <!-- Account Icon (Now only a decorative link to contact) -->
-                    <a href="#contact" class="flex items-center text-gray-300 hover:text-white transition duration-150 p-2 rounded-full hover:bg-htek-primary/50 focus:outline-none" aria-label="Account Settings">
+                    <a href="#contact" class="flex items-center text-gray-300 hover:text-white transition duration-150 p-2 rounded-full hover:bg-ts-primary/50 focus:outline-none" aria-label="Account Settings">
                         <!-- User Icon SVG -->
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                         <span class="ml-2 text-sm text-gray-300">Client Portal</span>
@@ -115,19 +115,19 @@
     <main id="app-container">
         
         <!-- Page: Home/Hero Section -->
-        <section id="home" class="page-content bg-htek-primary text-white py-20 md:py-32">
+        <section id="home" class="page-content bg-ts-primary text-white py-20 md:py-32">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
                 <h1 class="text-4xl sm:text-6xl font-extrabold leading-tight mb-4">
-                    Powering PCs, <span class="text-htek-secondary">Empowering People.</span>
+                    Powering PCs, <span class="text-ts-secondary">Empowering People.</span>
                 </h1>
                 <p class="text-xl sm:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto">
                     Donate your unused computer parts to support digital literacy projects, and get expert tech help for a small, affordable fee.
                 </p>
                 <div class="space-y-4 sm:space-y-0 sm:space-x-6">
-                    <a href="#services" class="inline-block bg-htek-secondary text-htek-dark font-bold py-3 px-8 rounded-xl text-lg shadow-xl hover:bg-emerald-400 transition duration-300 transform hover:scale-105">
+                    <a href="#services" class="inline-block bg-ts-secondary text-ts-dark font-bold py-3 px-8 rounded-xl text-lg shadow-xl hover:bg-emerald-400 transition duration-300 transform hover:scale-105">
                         Get Expert Tech Support
                     </a>
-                    <a href="#donate" class="inline-block bg-white text-htek-primary font-bold py-3 px-8 rounded-xl text-lg shadow-xl hover:bg-gray-200 transition duration-300 transform hover:scale-105">
+                    <a href="#donate" class="inline-block bg-white text-ts-primary font-bold py-3 px-8 rounded-xl text-lg shadow-xl hover:bg-gray-200 transition duration-300 transform hover:scale-105">
                         Donate Your Parts Today
                     </a>
                 </div>
@@ -138,35 +138,35 @@
         <section id="about" class="page-content py-16 bg-white hidden">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="text-center">
-                    <h2 class="text-3xl font-extrabold text-htek-dark sm:text-4xl mb-4">Our Two-Part Mission</h2>
+                    <h2 class="text-3xl font-extrabold text-ts-dark sm:text-4xl mb-4">Our Two-Part Mission</h2>
                     <p class="text-xl text-gray-600 max-w-2xl mx-auto">
-                        H-Tek bridges the digital divide by accepting hardware donations and using the proceeds from our services to fund community tech projects.
+                        T&S bridges the digital divide by accepting hardware donations and using the proceeds from our services to fund community tech projects.
                     </p>
                 </div>
 
                 <div class="mt-12 grid grid-cols-1 md:grid-cols-2 gap-8">
                     <!-- Mission Card 1: Services -->
-                    <div class="bg-htek-primary/5 p-8 rounded-2xl shadow-lg border-t-4 border-htek-primary">
+                    <div class="bg-ts-primary/5 p-8 rounded-2xl shadow-lg border-t-4 border-ts-primary">
                         <div class="flex items-center space-x-4 mb-4">
-                            <span class="text-4xl text-htek-primary">🔧</span>
-                            <h3 class="text-2xl font-bold text-htek-dark">Affordable Tech Support</h3>
+                            <span class="text-4xl text-ts-primary">🔧</span>
+                            <h3 class="text-2xl font-bold text-ts-dark">Affordable Tech Support</h3>
                         </div>
                         <p class="text-gray-700">
                             Get reliable help for software issues, hardware diagnosis, and performance tuning from our certified technicians, available online. Your small fee directly funds our community initiatives.
                         </p>
-                        <a href="#services" class="mt-4 inline-block text-htek-primary font-semibold hover:text-htek-secondary transition duration-150">Explore Support Options &rarr;</a>
+                        <a href="#services" class="mt-4 inline-block text-ts-primary font-semibold hover:text-ts-secondary transition duration-150">Explore Support Options &rarr;</a>
                     </div>
 
                     <!-- Mission Card 2: Donations -->
-                    <div class="bg-htek-secondary/10 p-8 rounded-2xl shadow-lg border-t-4 border-htek-secondary">
+                    <div class="bg-ts-secondary/10 p-8 rounded-2xl shadow-lg border-t-4 border-ts-secondary">
                         <div class="flex items-center space-x-4 mb-4">
-                            <span class="text-4xl text-htek-secondary">♻️</span>
-                            <h3 class="text-2xl font-bold text-htek-dark">Sustainable Hardware Donation</h3>
+                            <span class="text-4xl text-ts-secondary">♻️</span>
+                            <h3 class="text-2xl font-bold text-ts-dark">Sustainable Hardware Donation</h3>
                         </div>
                         <p class="text-gray-700">
                             Give new life to your old GPUs, RAM, CPUs, and peripherals. We refurbish, repurpose, or responsibly recycle every component, turning e-waste into educational resources.
                         </p>
-                        <a href="#donate" class="mt-4 inline-block text-htek-secondary font-semibold hover:text-htek-primary transition duration-150">See How to Donate &rarr;</a>
+                        <a href="#donate" class="mt-4 inline-block text-ts-secondary font-semibold hover:text-ts-primary transition duration-150">See How to Donate &rarr;</a>
                     </div>
                 </div>
             </div>
@@ -176,7 +176,7 @@
         <section id="services" class="page-content py-16 bg-gray-100 hidden">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="text-center mb-12">
-                    <h2 class="text-3xl font-extrabold text-htek-dark sm:text-4xl">Expert Computer Support for a Small Fee</h2>
+                    <h2 class="text-3xl font-extrabold text-ts-dark sm:text-4xl">Expert Computer Support for a Small Fee</h2>
                     <p class="mt-4 text-lg text-gray-600">
                         Your payment helps fund our mission. Get reliable, professional service without the big-box price tag. We specialize in remote, online assistance.
                     </p>
@@ -186,8 +186,8 @@
                 <div class="flex justify-center">
                     <!-- Service Card 1: Online Support (The only remaining card) -->
                     <div class="card-hover bg-white p-6 md:p-10 rounded-xl shadow-xl border border-gray-200 w-full max-w-md">
-                        <div class="text-5xl text-htek-primary mb-4">🖥️</div>
-                        <h3 class="text-2xl font-bold mb-3 text-htek-dark">Remote Diagnostics & Repair</h3>
+                        <div class="text-5xl text-ts-primary mb-4">🖥️</div>
+                        <h3 class="text-2xl font-bold mb-3 text-ts-dark">Remote Diagnostics & Repair</h3>
                         <p class="text-gray-600 mb-6">
                             Get immediate assistance from anywhere. We securely connect to your PC to resolve software errors, virus removal, driver conflicts, and speed optimization issues.
                         </p>
@@ -196,7 +196,7 @@
                             <li>System cleanup and tune-up</li>
                             <li>Quick troubleshooting session</li>
                         </ul>
-                        <a href="#contact" class="mt-6 inline-block bg-htek-secondary text-white font-semibold py-2 px-6 rounded-full hover:bg-emerald-600 transition duration-300">
+                        <a href="#contact" class="mt-6 inline-block bg-ts-secondary text-white font-semibold py-2 px-6 rounded-full hover:bg-emerald-600 transition duration-300">
                             Book Remote Session ($25 Fee)
                         </a>
                     </div>
@@ -205,37 +205,37 @@
         </section>
 
         <!-- Page: Donation (Call to Action) Section -->
-        <section id="donate" class="page-content py-16 bg-htek-dark text-white hidden">
+        <section id="donate" class="page-content py-16 bg-ts-dark text-white hidden">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                <h2 class="text-3xl font-extrabold sm:text-4xl text-htek-secondary mb-4">Ready to Clear Out the Clutter?</h2>
+                <h2 class="text-3xl font-extrabold sm:text-4xl text-ts-secondary mb-4">Ready to Clear Out the Clutter?</h2>
                 <p class="text-xl text-gray-300 mb-8 max-w-3xl mx-auto">
                     Your surplus computer parts—even non-working ones—can change someone's life by becoming a tool for education and opportunity.
                 </p>
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
                     <!-- Step 1 -->
-                    <div class="p-6 bg-htek-primary rounded-xl card-hover">
-                        <span class="text-4xl font-bold text-htek-secondary block mb-3">1. Collect</span>
+                    <div class="p-6 bg-ts-primary rounded-xl card-hover">
+                        <span class="text-4xl font-bold text-ts-secondary block mb-3">1. Collect</span>
                         <h4 class="text-xl font-semibold mb-2">Gather Your Gear</h4>
                         <p class="text-gray-300">CPUs, GPUs, RAM, motherboards, monitors, keyboards, or even full towers you no longer need.</p>
                     </div>
 
                     <!-- Step 2 -->
-                    <div class="p-6 bg-htek-primary rounded-xl card-hover">
-                        <span class="text-4xl font-bold text-htek-secondary block mb-3">2. Contact</span>
+                    <div class="p-6 bg-ts-primary rounded-xl card-hover">
+                        <span class="text-4xl font-bold text-ts-secondary block mb-3">2. Contact</span>
                         <h4 class="text-xl font-semibold mb-2">Schedule Drop-off or Pickup</h4>
                         <p class="text-gray-300">Fill out our quick form or call us to arrange a safe, convenient way to transfer your donation.</p>
                     </div>
 
                     <!-- Step 3 -->
-                    <div class="p-6 bg-htek-primary rounded-xl card-hover">
-                        <span class="text-4xl font-bold text-htek-secondary block mb-3">3. Impact</span>
+                    <div class="p-6 bg-ts-primary rounded-xl card-hover">
+                        <span class="text-4xl font-bold text-ts-secondary block mb-3">3. Impact</span>
                         <h4 class="text-xl font-semibold mb-2">See Your Impact</h4>
                         <p class="text-gray-300">We'll provide a donation receipt and share stories of the projects your hardware makes possible.</p>
                     </div>
                 </div>
 
-                <a href="#contact" class="mt-12 inline-block bg-htek-secondary text-htek-dark font-bold py-3 px-10 rounded-full text-xl shadow-2xl hover:bg-emerald-400 transition duration-300 transform hover:scale-105">
+                <a href="#contact" class="mt-12 inline-block bg-ts-secondary text-ts-dark font-bold py-3 px-10 rounded-full text-xl shadow-2xl hover:bg-emerald-400 transition duration-300 transform hover:scale-105">
                     Start Your Donation
                 </a>
             </div>
@@ -245,7 +245,7 @@
         <section id="contact" class="page-content py-16 bg-white hidden">
             <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="text-center mb-12">
-                    <h2 class="text-3xl font-extrabold text-htek-dark sm:text-4xl">Get Support</h2>
+                    <h2 class="text-3xl font-extrabold text-ts-dark sm:text-4xl">Get Support</h2>
                     <!-- Instructions change based on state -->
                     <p class="mt-4 text-lg text-gray-600" id="contact-instructions">
                         Follow the steps below to secure your remote support session.
@@ -263,7 +263,7 @@
                     
                     <!-- Payment Block: Initially shown. -->
                     <div id="paypal-payment-block" class="flex flex-col items-center justify-center pb-6 border-b border-gray-300">
-                        <p class="text-lg font-semibold text-htek-primary mb-4">
+                        <p class="text-lg font-semibold text-ts-primary mb-4">
                             Step 1: Complete the Remote Support Fee: $25.00
                         </p>
                         
@@ -275,7 +275,7 @@
                         <button 
                             id="request-fulfillment-button"
                             onclick="showStaticInfo()"
-                            class="mt-6 w-full max-w-[300px] bg-htek-secondary text-white font-bold py-3 rounded-xl hover:bg-emerald-600 transition duration-300"
+                            class="mt-6 w-full max-w-[300px] bg-ts-secondary text-white font-bold py-3 rounded-xl hover:bg-emerald-600 transition duration-300"
                         >
                             Step 2: Request Support Link
                         </button>
@@ -283,17 +283,17 @@
                     
                     <!-- Static Information Block (Repurposed from queue-status-block) - Initially Hidden -->
                     <div id="static-info-block" class="hidden text-center py-10 pt-6 mt-6">
-                        <p class="text-center mb-6 text-2xl font-bold text-htek-primary">
+                        <p class="text-center mb-6 text-2xl font-bold text-ts-primary">
                             Your Support Request is Secured!
                         </p>
-                        <div class="p-6 bg-white rounded-xl shadow-inner border border-htek-secondary/50">
-                            <p class="text-xl font-bold text-htek-dark mb-4">
+                        <div class="p-6 bg-white rounded-xl shadow-inner border border-ts-secondary/50">
+                            <p class="text-xl font-bold text-ts-dark mb-4">
                                 Next Steps:
                             </p>
                             <p class="text-gray-700 font-semibold mb-2">
                                 We will confirm your payment and schedule a session during our active hours:
                             </p>
-                            <p class="text-2xl font-extrabold text-htek-secondary mb-4">
+                            <p class="text-2xl font-extrabold text-ts-secondary mb-4">
                                 Monday to Friday, 4:30 PM to 7:30 PM
                             </p>
                             <p class="text-gray-700 font-semibold">
@@ -310,11 +310,11 @@
 
 
     <!-- Footer (Static) -->
-    <footer class="bg-htek-dark text-white py-10">
+    <footer class="bg-ts-dark text-white py-10">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <div class="mb-4">
                 <a href="#home" class="text-2xl font-extrabold tracking-wider">
-                    H-<span class="text-htek-secondary">Tek</span>
+                    T&<span class="text-ts-secondary">S</span>
                 </a>
                 <p class="text-sm text-gray-400 mt-2">
                     &copy; 2025 Rayaan Arif & Xavi Rodriguez. All rights reserved. | Building a better digital future.
@@ -324,7 +324,7 @@
             <div class="flex justify-center space-x-6 text-sm text-gray-400">
                 <a href="#about" class="nav-link hover:text-white transition duration-150">Privacy Policy</a>
                 <a href="#services" class="nav-link hover:text-white transition duration-150">Terms of Service</a>
-                <a href="mailto:info@htek.com" class="hover:text-white transition duration-150">info@htek.com</a>
+                <a href="mailto:info@ts.com" class="hover:text-white transition duration-150">info@ts.com</a>
             </div>
         </div>
     </footer>
@@ -430,7 +430,7 @@
                 if (page.id === currentHash) {
                     page.classList.remove('hidden');
                     document.getElementById('app-container').scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    document.title = `H-Tek | ${page.id.charAt(0).toUpperCase() + page.id.slice(1).replace('-', ' ')}`;
+                    document.title = `T&S | ${page.id.charAt(0).toUpperCase() + page.id.slice(1).replace('-', ' ')}`;
                     found = true;
                     
                     // --- Page Specific Initialization ---
@@ -472,5 +472,3 @@
     </script>
 </body>
 </html>
-
-
